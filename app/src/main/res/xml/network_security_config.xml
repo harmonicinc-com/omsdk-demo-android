@@ -1,0 +1,13 @@
+<network-security-config>
+  <debug-overrides>
+    <trust-anchors>
+      <!-- Trust user added CAs while debuggable only -->
+      <certificates src="user" />
+    </trust-anchors>
+  </debug-overrides>
+
+  <domain-config cleartextTrafficPermitted="true">
+    <!-- Domain to report event -->
+    <domain includeSubdomains="true">harmonic-dummy-domain</domain>
+  </domain-config>
+</network-security-config>
