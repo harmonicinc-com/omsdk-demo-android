@@ -40,7 +40,8 @@ class MainActivity : AppCompatActivity() {
     private var isPlaying = true
 
     lateinit var eventJson : JSONArray
-    val eventUrl = URL("https://harmonic-player-sdk-assets.s3-us-west-2.amazonaws.com/omsdk-resource/multi-period/event.json")
+    val eventUrl = "https://harmonic-player-sdk-assets.s3-us-west-2.amazonaws.com/omsdk-resource/multi-period/event.json"
+    val assetUrl = "https://harmonic-player-sdk-assets.s3-us-west-2.amazonaws.com/omsdk-resource/multi-period/manifest.mpd"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,7 +50,7 @@ class MainActivity : AppCompatActivity() {
 
         Thread(Runnable {
             try {
-                val url = eventUrl
+                val url = URL(eventUrl)
                 val urlConnection = url.openConnection()
                 eventJson = JSONArray(urlConnection.getInputStream().bufferedReader().readText())
             } catch (e: Exception) {
@@ -76,9 +77,6 @@ class MainActivity : AppCompatActivity() {
             }
         )
 
-        //Load asset
-        val assetUrl =
-            "https://harmonic-player-sdk-assets.s3-us-west-2.amazonaws.com/omsdk-resource/multi-period/manifest.mpd"
 
         val dataSourceFactory = DefaultDataSourceFactory(
             applicationContext,
