@@ -16,6 +16,8 @@ import com.iab.omid.library.harmonicinc.adsession.Partner;
 import com.iab.omid.library.harmonicinc.adsession.VerificationScriptResource;
 import com.harmonicinc.omsdkdemo.BuildConfig;
 
+import org.json.JSONObject;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
@@ -28,7 +30,7 @@ import java.util.List;
 public final class AdSessionUtil {
 
     @NonNull
-    public static AdSession getNativeAdSession(Context context, String customReferenceData, CreativeType creativeType) throws MalformedURLException {
+    public static AdSession getNativeAdSession(Context context, String customReferenceData, CreativeType creativeType, JSONObject verificationDetails) throws MalformedURLException {
         ensureOmidActivated(context);
 
         AdSessionConfiguration adSessionConfiguration =
@@ -40,19 +42,41 @@ public final class AdSessionUtil {
 
         Partner partner = Partner.createPartner(BuildConfig.PARTNER_NAME, BuildConfig.VERSION_NAME);
         final String omidJs = OmidJsLoader.getOmidJs(context);
-        List<VerificationScriptResource> verificationScripts = AdSessionUtil.getVerificationScriptResources();
+        List<VerificationScriptResource> verificationScripts = AdSessionUtil.getVerificationScriptResources(verificationDetails);
         AdSessionContext adSessionContext = AdSessionContext.createNativeAdSessionContext(partner, omidJs, verificationScripts, null, customReferenceData);
         return AdSession.createAdSession(adSessionConfiguration, adSessionContext);
     }
 
     @NonNull
-    private static List<VerificationScriptResource> getVerificationScriptResources() throws MalformedURLException {
-        VerificationScriptResource verificationScriptResource = VerificationScriptResource.createVerificationScriptResourceWithoutParameters(getURL());
+    private static List<VerificationScriptResource> getVerificationScriptResources(JSONObject verificationDetails) throws MalformedURLException {
+        VerificationScriptResource verificationScriptResource;
+        try {
+            String vendorKey = verificationDetails.getString("vendorKey");
+            URL javascriptResourceUrl = getURL(verificationDetails.getString("javascriptResourceUrl"));
+            String verificationParameters = verificationDetails.getString("verificationParameters");
+            if(verificationParameters.equals("")){
+                verificationScriptResource = VerificationScriptResource.createVerificationScriptResourceWithoutParameters(javascriptResourceUrl);
+            } else {
+                verificationScriptResource =
+                        VerificationScriptResource.createVerificationScriptResourceWithParameters(
+                                verificationDetails.getString("vendorKey"),
+                                getURL(verificationDetails.getString("javascriptResourceUrl")),
+                                verificationDetails.getString("verificationParameters")
+                        );
+            }
+        } catch (Exception ex) {
+            verificationScriptResource = VerificationScriptResource.createVerificationScriptResourceWithoutParameters(getDefaultURL());
+        }
+
+
         return Collections.singletonList(verificationScriptResource);
     }
 
-    @NonNull
-    private static URL getURL() throws MalformedURLException {
+    private static URL getURL(String scriptUrl) throws MalformedURLException {
+        return new URL(scriptUrl);
+    }
+
+    private static URL getDefaultURL() throws MalformedURLException {
         return new URL(BuildConfig.VERIFICATION_URL);
     }
 

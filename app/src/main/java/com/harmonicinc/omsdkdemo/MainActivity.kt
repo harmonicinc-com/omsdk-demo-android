@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private var isPlaying = true
 
     lateinit var eventJson : JSONArray
+    lateinit var verificationDetails : JSONObject
     val eventUrl = "https://harmonic-player-sdk-assets.s3-us-west-2.amazonaws.com/omsdk-resource/multi-period/event.json"
     val assetUrl = "https://harmonic-player-sdk-assets.s3-us-west-2.amazonaws.com/omsdk-resource/multi-period/manifest.mpd"
 
@@ -52,7 +53,9 @@ class MainActivity : AppCompatActivity() {
             try {
                 val url = URL(eventUrl)
                 val urlConnection = url.openConnection()
-                eventJson = JSONArray(urlConnection.getInputStream().bufferedReader().readText())
+                val json = JSONObject(urlConnection.getInputStream().bufferedReader().readText())
+                eventJson = json.getJSONArray("events")
+                verificationDetails = json.getJSONObject("verificationDetails")
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -95,7 +98,8 @@ class MainActivity : AppCompatActivity() {
             AdSessionUtil.getNativeAdSession(
                 applicationContext,
                 CUSTOM_REFERENCE_DATA,
-                CreativeType.VIDEO
+                CreativeType.VIDEO,
+                verificationDetails
             )
         } catch (e: MalformedURLException) {
             Log.d(TAG, "setupAdSession failed", e)
